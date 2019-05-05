@@ -13,3 +13,5 @@
 
 .env
 *.db
+vendor/github.com
+vendor/github.com/*

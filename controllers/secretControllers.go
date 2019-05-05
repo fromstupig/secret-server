@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +12,7 @@ import (
 )
 
 var AddSecret = func(w http.ResponseWriter, r *http.Request) {
+	contentType := r.Header.Get("accept")
 	r.ParseForm()
 
 	secretText := r.FormValue("secret")
@@ -19,6 +21,11 @@ var AddSecret = func(w http.ResponseWriter, r *http.Request) {
 
 	if err1 != nil || err2 != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if expireAfter < 0 {
+		helpers.Respond(w, helpers.Message(false, "expireAfter must be positive number."), contentType, nil)
 		return
 	}
 
@@ -35,16 +42,16 @@ var AddSecret = func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := secret.Create()
-	contentType := r.Header.Get("accept")
 
 	var rv map[string]interface{}
 
 	if err != nil {
 		rv = helpers.Message(false, "Something went wrong!")
 	} else {
-		rv := helpers.Message(true, "Add secret successfully!")
+		rv = helpers.Message(true, "Add secret successfully!")
 		rv["data"] = secret
 	}
+	fmt.Println(err, rv)
 
 	helpers.Respond(w, rv, contentType, err)
 }
@@ -70,6 +77,7 @@ var GetSecret = func(w http.ResponseWriter, r *http.Request) {
 			rv = helpers.Message(false, "Something went wrong.")
 		} else {
 			rv = helpers.Message(true, "Get secret successfully!")
+			secret.DecryptSecret()
 			rv["data"] = secret
 		}
 	} else {

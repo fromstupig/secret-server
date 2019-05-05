@@ -3,12 +3,14 @@ package helpers
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/md5"
 	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -32,15 +34,21 @@ func Respond(w http.ResponseWriter, data map[string]interface{}, contentType str
 
 	if err != nil || validateErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Fatal(err, validateErr)
+		fmt.Println(err, validateErr)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
+func CreateHash(key string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(key))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
 func Encrypt(data []byte, passphrase string) []byte {
-	block, _ := aes.NewCipher([]byte(passphrase))
+	block, _ := aes.NewCipher([]byte(CreateHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		panic(err.Error())
@@ -54,7 +62,7 @@ func Encrypt(data []byte, passphrase string) []byte {
 }
 
 func Decrypt(data []byte, passphrase string) []byte {
-	key := []byte(passphrase)
+	key := []byte(CreateHash(passphrase))
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err.Error())

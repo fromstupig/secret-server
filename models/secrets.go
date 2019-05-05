@@ -1,12 +1,12 @@
 package models
 
 import (
+	"errors"
 	"os"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/smapig/secret-server/helpers"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type Secret struct {
@@ -18,12 +18,16 @@ type Secret struct {
 }
 
 func (secret *Secret) GenerateHash() {
-	hased, _ := bcrypt.GenerateFromPassword([]byte(secret.SecretText), bcrypt.DefaultCost)
-	secret.Hash = string(hased)
+	secret.Hash = helpers.CreateHash(secret.SecretText + time.Now().String())
 }
 
 func (secret *Secret) SecretKey() string {
 	secretKey := os.Getenv("SECRET_KEY")
+
+	if secretKey == "" {
+		secretKey = "topsecret"
+	}
+
 	return secretKey + secret.Hash
 }
 
@@ -35,10 +39,23 @@ func (secret *Secret) DecryptSecret() {
 	secret.SecretText = string(helpers.Decrypt([]byte(secret.SecretText), secret.SecretKey()))
 }
 
+func (secret *Secret) Validate() (bool, error) {
+	if secret.RemainingViews <= 0 {
+		return false, errors.New("Remaining views must greater than 0.")
+	}
+
+	return true, nil
+}
+
 func (secret *Secret) Create() error {
-	secret.GenerateHash()
-	secret.EncryptSecret()
-	err := DB().Create(secret).Error
+	isValid, err := secret.Validate()
+
+	if isValid {
+		secret.GenerateHash()
+		secret.EncryptSecret()
+		err = DB().Create(secret).Error
+	}
+
 	return err
 }
 

@@ -13,8 +13,8 @@ import (
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("v1/secret", controllers.AddSecret).Methods("POST")
-	router.HandleFunc("v1/secret/{hash}", controllers.GetSecret).Methods("GET")
+	router.HandleFunc("/v1/secret", controllers.AddSecret).Methods("POST")
+	router.HandleFunc("/v1/secret/{hash}", controllers.GetSecret).Methods("GET")
 
 	sh := http.StripPrefix("/swaggerui/", http.FileServer(http.Dir("./swaggerui/")))
 	router.PathPrefix("/swaggerui/").Handler(sh)

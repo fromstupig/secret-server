@@ -24,11 +24,11 @@ As a bonus exercises you can also...
 
 ## Installation
 ```
-go get -u github.com/kardianos/govendor
-git clone https://github.com/smapig/secret-server
-cd secret-server
-govendor sync
-go run -v main.go
+git clone https://github.com/smapig/secret-server {GOPATH}/github.com/smapig/secret-server
+cd {GOPATH}/github.com/smapig/secret-server
+go install
+touch .env
+go run main.go
 ```
 
 ## Override environment configuration

@@ -35,7 +35,7 @@ go run -v main.go
 - Create *.env* file at root folder
 - Put your configure you would like to override in your .env file with syntax **YOUR_CONFIG_KEY=YOUR_CONFIG**
 
-# List override configure
+### List override configure
 - PORT: Server port to serve (default is 8080).
 - SECRET_KEY: Secret key to ecrypt data (default is topsecret).
 

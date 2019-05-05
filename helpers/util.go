@@ -16,23 +16,23 @@ func Message(success bool, message string) map[string]interface{} {
 	return map[string]interface{}{"success": success, "message": message}
 }
 
-func Respond(w http.ResponseWriter, data map[string]interface{}, contentType string) {
-	var err error
+func Respond(w http.ResponseWriter, data map[string]interface{}, contentType string, err error) {
+	var validateErr error
 
 	switch contentType {
 	case "application/json":
 		w.Header().Add("Content-Type", contentType)
-		err = json.NewEncoder(w).Encode(data)
+		validateErr = json.NewEncoder(w).Encode(data)
 	case "application/xml":
 		w.Header().Add("Content-Type", contentType)
-		err = xml.NewEncoder(w).Encode(data)
+		validateErr = xml.NewEncoder(w).Encode(data)
 	default:
-		err = errors.New("Invalid content type! Only accept application/json or application/xml.")
+		validateErr = errors.New("Invalid content type! Only accept application/json or application/xml.")
 	}
 
-	if err != nil {
+	if err != nil || validateErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Fatal(err)
+		log.Fatal(err, validateErr)
 		return
 	}
 

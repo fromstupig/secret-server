@@ -13,7 +13,6 @@ type Secret struct {
 	gorm.Model
 	Hash           string     `json:"hash"`
 	SecretText     string     `json:"secretText"`
-	CreatedAt      *time.Time `json:"createdAt"`
 	ExpiresAt      *time.Time `json:"expiresAt"`
 	RemainingViews int        `json:"remainingViews"`
 }
@@ -39,8 +38,6 @@ func (secret *Secret) DecryptSecret() {
 func (secret *Secret) Create() error {
 	secret.GenerateHash()
 	secret.EncryptSecret()
-	now := time.Now().UTC()
-	secret.CreatedAt = &now
 	err := DB().Create(secret).Error
 	return err
 }
@@ -61,14 +58,14 @@ func (secret *Secret) IsAlive() bool {
 	}
 
 	expiresAt := *(*secret).ExpiresAt
-	if expiresAt.UTC().Before(time.Now().UTC()) {
+	if !expiresAt.IsZero() && expiresAt.Before(time.Now()) {
 		return false
 	}
 
 	return true
 }
 
-func GetByHash(hash string) *Secret {
+func GetSecretByHash(hash string) *Secret {
 	secret := &Secret{}
 
 	if hash == "" {
